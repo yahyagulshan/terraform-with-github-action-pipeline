@@ -24,21 +24,21 @@ module "vpc" {
 #   vpc = true
 # }
 
-locals {
-  name   = "complete-example"
-  region = "us-east-1"
-  tags = {
-    Owner       = "user"
-    Environment = "staging"
-    Name        = "complete"
-  }
-}
+# locals {
+#   name   = "complete-example"
+#   region = "us-east-1"
+#   tags = {
+#     Owner       = "user"
+#     Environment = "staging"
+#     Name        = "complete"
+#   }
+# }
 
-module "vpc1" {
-  source = "./modules/aws-vpc"
+# module "vpc1" {
+#   source = "./modules/aws-vpc"
 
-  name = local.name
-  cidr = "20.10.0.0/16" # 10.0.0.0/8 is reserved for EC2-Classic
+#   name = local.name
+#   cidr = "20.10.0.0/16" # 10.0.0.0/8 is reserved for EC2-Classic
 
   # azs                 = ["${local.region}a", "${local.region}b", "${local.region}c"]
   # private_subnets     = ["20.10.1.0/24", "20.10.2.0/24", "20.10.3.0/24"]
@@ -118,7 +118,7 @@ module "vpc1" {
 #       values = [module.vpc.vpc_id]
 #     }
 #   }
-}
+# }
 
 # data "aws_iam_policy_document" "generic_endpoint_policy" {
 #   statement {
