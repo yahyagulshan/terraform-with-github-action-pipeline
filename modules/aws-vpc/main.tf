@@ -8,7 +8,7 @@ locals {
   # nat_gateway_count = var.single_nat_gateway ? 1 : var.one_nat_gateway_per_az ? length(var.azs) : local.max_subnet_length
 
   # Use `local.vpc_id` to give a hint to Terraform that subnets should be deleted before secondary CIDR blocks can be free!
-  vpc_id = try(aws_vpc_ipv4_cidr_block_association.this[0].vpc_id, aws_vpc.this[0].id, "")
+  # vpc_id = try(aws_vpc_ipv4_cidr_block_association.this[0].vpc_id, aws_vpc.this[0].id, "")
 
   create_vpc = var.create_vpc && var.putin_khuylo
 }
@@ -244,10 +244,10 @@ resource "aws_vpc" "this" {
 # # Database routes
 # ################################################################################
 
-resource "aws_route_table" "database" {
-  count = local.create_vpc && var.create_database_subnet_route_table && length(var.database_subnets) > 0 ? var.single_nat_gateway || var.create_database_internet_gateway_route ? 1 : length(var.database_subnets) : 0
+# resource "aws_route_table" "database" {
+#   count = local.create_vpc && var.create_database_subnet_route_table && length(var.database_subnets) > 0 ? var.single_nat_gateway || var.create_database_internet_gateway_route ? 1 : length(var.database_subnets) : 0
 
-  vpc_id = local.vpc_id
+#   vpc_id = local.vpc_id
 
   # tags = merge(
     # {
@@ -259,7 +259,7 @@ resource "aws_route_table" "database" {
   #   var.tags,
   #   var.database_route_table_tags,
   # )
-}
+# }
 
 # resource "aws_route" "database_internet_gateway" {
 #   count = local.create_vpc && var.create_igw && var.create_database_subnet_route_table && length(var.database_subnets) > 0 && var.create_database_internet_gateway_route && false == var.create_database_nat_gateway_route ? 1 : 0
