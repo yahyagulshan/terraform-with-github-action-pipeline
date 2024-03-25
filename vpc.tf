@@ -120,38 +120,38 @@ module "vpc1" {
 #   }
 }
 
-data "aws_iam_policy_document" "generic_endpoint_policy" {
-  statement {
-    effect    = "Deny"
-    actions   = ["*"]
-    resources = ["*"]
+# data "aws_iam_policy_document" "generic_endpoint_policy" {
+#   statement {
+#     effect    = "Deny"
+#     actions   = ["*"]
+#     resources = ["*"]
 
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
+#     principals {
+#       type        = "*"
+#       identifiers = ["*"]
+#     }
 
-    condition {
-      test     = "StringNotEquals"
-      variable = "aws:SourceVpc"
+#     condition {
+#       test     = "StringNotEquals"
+#       variable = "aws:SourceVpc"
 
-      values = [module.vpc.vpc_id]
-    }
-  }
-}
+#       values = [module.vpc.vpc_id]
+#     }
+#   }
+# }
 
-resource "aws_security_group" "vpc_tls" {
-  name_prefix = "${local.name}-vpc_tls"
-  description = "Allow TLS inbound traffic"
-  vpc_id      = module.vpc.vpc_id
+# resource "aws_security_group" "vpc_tls" {
+#   name_prefix = "${local.name}-vpc_tls"
+#   description = "Allow TLS inbound traffic"
+#   vpc_id      = module.vpc.vpc_id
 
-  ingress {
-    description = "TLS from VPC"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [module.vpc.vpc_cidr_block]
-  }
+#   ingress {
+#     description = "TLS from VPC"
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#     cidr_blocks = [module.vpc.vpc_cidr_block]
+#   }
 
-  tags = local.tags
-}
+#   tags = local.tags
+# }
