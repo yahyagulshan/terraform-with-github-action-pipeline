@@ -35,7 +35,7 @@ locals {
 }
 
 module "vpc1" {
-  source = "../terraform-modules/aws-vpc"
+  source = "./modules/aws-vpc"
 
   name = local.name
   cidr = "20.10.0.0/16" # 10.0.0.0/8 is reserved for EC2-Classic
