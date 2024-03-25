@@ -31,6 +31,9 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve
 
+      - name: Copy Terraform State
+        run: cp terraform.tfstate $GITHUB_WORKSPACE
+
       - name: Destroy Terraform resources (optional)
         if: success()  # Run only if previous steps succeed
         run: |

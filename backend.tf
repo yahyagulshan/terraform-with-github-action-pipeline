@@ -1,9 +1,9 @@
-terraform {
-  backend "local" {
+# terraform {
+#   backend "local" {
 
-		path = "./state/terraform.tfstate"
-	}
-}
+# 		path = "./state/terraform.tfstate"
+# 	}
+# }
 
 
 # terraform {
@@ -18,3 +18,8 @@ terraform {
 #   }
 # }
 
+terraform {
+  backend "local" {
+    path = "terraform.tfstate"
+  }
+}
