@@ -5,7 +5,7 @@ locals {
     length(var.database_subnets),
     length(var.redshift_subnets),
   )
-  nat_gateway_count = var.single_nat_gateway ? 1 : var.one_nat_gateway_per_az ? length(var.azs) : local.max_subnet_length
+  # nat_gateway_count = var.single_nat_gateway ? 1 : var.one_nat_gateway_per_az ? length(var.azs) : local.max_subnet_length
 
   # Use `local.vpc_id` to give a hint to Terraform that subnets should be deleted before secondary CIDR blocks can be free!
   vpc_id = try(aws_vpc_ipv4_cidr_block_association.this[0].vpc_id, aws_vpc.this[0].id, "")
@@ -162,7 +162,7 @@ resource "aws_default_route_table" "default" {
       egress_only_gateway_id    = lookup(route.value, "egress_only_gateway_id", null)
       gateway_id                = lookup(route.value, "gateway_id", null)
       instance_id               = lookup(route.value, "instance_id", null)
-      nat_gateway_id            = lookup(route.value, "nat_gateway_id", null)
+      # nat_gateway_id            = lookup(route.value, "nat_gateway_id", null)
       network_interface_id      = lookup(route.value, "network_interface_id", null)
       transit_gateway_id        = lookup(route.value, "transit_gateway_id", null)
       vpc_endpoint_id           = lookup(route.value, "vpc_endpoint_id", null)
@@ -223,22 +223,22 @@ resource "aws_route" "public_internet_gateway" {
 # # There are as many routing tables as the number of NAT gateways
 # ################################################################################
 
-resource "aws_route_table" "private" {
-  count = local.create_vpc && local.max_subnet_length > 0 ? local.nat_gateway_count : 0
+# resource "aws_route_table" "private" {
+#   count = local.create_vpc && local.max_subnet_length > 0 ? local.nat_gateway_count : 0
 
-  vpc_id = local.vpc_id
+#   vpc_id = local.vpc_id
 
-  tags = merge(
-    {
-      "Name" = var.single_nat_gateway ? "${var.name}-${var.private_subnet_suffix}" : format(
-        "${var.name}-${var.private_subnet_suffix}-%s",
-        element(var.azs, count.index),
-      )
-    },
-    var.tags,
-    var.private_route_table_tags,
-  )
-}
+#   tags = merge(
+#     {
+#       "Name" = var.single_nat_gateway ? "${var.name}-${var.private_subnet_suffix}" : format(
+#         "${var.name}-${var.private_subnet_suffix}-%s",
+#         element(var.azs, count.index),
+#       )
+#     },
+#     var.tags,
+#     var.private_route_table_tags,
+#   )
+# }
 
 # ################################################################################
 # # Database routes
@@ -249,53 +249,53 @@ resource "aws_route_table" "database" {
 
   vpc_id = local.vpc_id
 
-  tags = merge(
-    {
-      "Name" = var.single_nat_gateway || var.create_database_internet_gateway_route ? "${var.name}-${var.database_subnet_suffix}" : format(
-        "${var.name}-${var.database_subnet_suffix}-%s",
-        element(var.azs, count.index),
-      )
-    },
-    var.tags,
-    var.database_route_table_tags,
-  )
+  # tags = merge(
+    # {
+      # "Name" = var.single_nat_gateway || var.create_database_internet_gateway_route ? "${var.name}-${var.database_subnet_suffix}" : format(
+  #       "${var.name}-${var.database_subnet_suffix}-%s",
+  #       element(var.azs, count.index),
+  #     )
+  #   },
+  #   var.tags,
+  #   var.database_route_table_tags,
+  # )
 }
 
-resource "aws_route" "database_internet_gateway" {
-  count = local.create_vpc && var.create_igw && var.create_database_subnet_route_table && length(var.database_subnets) > 0 && var.create_database_internet_gateway_route && false == var.create_database_nat_gateway_route ? 1 : 0
+# resource "aws_route" "database_internet_gateway" {
+#   count = local.create_vpc && var.create_igw && var.create_database_subnet_route_table && length(var.database_subnets) > 0 && var.create_database_internet_gateway_route && false == var.create_database_nat_gateway_route ? 1 : 0
 
-  route_table_id         = aws_route_table.database[0].id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.this[0].id
+#   route_table_id         = aws_route_table.database[0].id
+#   destination_cidr_block = "0.0.0.0/0"
+#   gateway_id             = aws_internet_gateway.this[0].id
 
-  timeouts {
-    create = "5m"
-  }
-}
+#   timeouts {
+#     create = "5m"
+#   }
+# }
 
-resource "aws_route" "database_nat_gateway" {
-  count = local.create_vpc && var.create_database_subnet_route_table && length(var.database_subnets) > 0 && false == var.create_database_internet_gateway_route && var.create_database_nat_gateway_route && var.enable_nat_gateway ? var.single_nat_gateway ? 1 : length(var.database_subnets) : 0
+# resource "aws_route" "database_nat_gateway" {
+#   count = local.create_vpc && var.create_database_subnet_route_table && length(var.database_subnets) > 0 && false == var.create_database_internet_gateway_route && var.create_database_nat_gateway_route && var.enable_nat_gateway ? var.single_nat_gateway ? 1 : length(var.database_subnets) : 0
 
-  route_table_id         = element(aws_route_table.database[*].id, count.index)
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = element(aws_nat_gateway.this[*].id, count.index)
+#   route_table_id         = element(aws_route_table.database[*].id, count.index)
+#   destination_cidr_block = "0.0.0.0/0"
+#   nat_gateway_id         = element(aws_nat_gateway.this[*].id, count.index)
 
-  timeouts {
-    create = "5m"
-  }
-}
+#   timeouts {
+#     create = "5m"
+#   }
+# }
 
-resource "aws_route" "database_ipv6_egress" {
-  count = local.create_vpc && var.create_egress_only_igw && var.enable_ipv6 && var.create_database_subnet_route_table && length(var.database_subnets) > 0 && var.create_database_internet_gateway_route ? 1 : 0
+# resource "aws_route" "database_ipv6_egress" {
+#   count = local.create_vpc && var.create_egress_only_igw && var.enable_ipv6 && var.create_database_subnet_route_table && length(var.database_subnets) > 0 && var.create_database_internet_gateway_route ? 1 : 0
 
-  route_table_id              = aws_route_table.database[0].id
-  destination_ipv6_cidr_block = "::/0"
-  egress_only_gateway_id      = aws_egress_only_internet_gateway.this[0].id
+#   route_table_id              = aws_route_table.database[0].id
+#   destination_ipv6_cidr_block = "::/0"
+#   egress_only_gateway_id      = aws_egress_only_internet_gateway.this[0].id
 
-  timeouts {
-    create = "5m"
-  }
-}
+#   timeouts {
+#     create = "5m"
+#   }
+# }
 
 # ################################################################################
 # # Redshift routes
